@@ -18,7 +18,7 @@ class Converter:
         self.t5_punct_tokenizer=T5Tokenizer.from_pretrained(punctuation)
         self.t5_punct_model=T5ForConditionalGeneration.from_pretrained(punctuation)
         self.summarizer=pipeline(summarizer)
-        Maximum
+
         self.min_space=15000 # Minimum temporal distance between two silences
         self.max_space=25000 # Maximum temporal distance between two silences
 
