@@ -18,9 +18,9 @@ class Converter:
         self.t5_punct_tokenizer=T5Tokenizer.from_pretrained(punctuation)
         self.t5_punct_model=T5ForConditionalGeneration.from_pretrained(punctuation)
         self.summarizer=pipeline(summarizer)
-        
-        self.min_space=15000
-        self.max_space=25000
+        Maximum
+        self.min_space=15000 # Minimum temporal distance between two silences
+        self.max_space=25000 # Maximum temporal distance between two silences
 
 
     def text_from_uploaded_file(self, video_path):
@@ -100,9 +100,7 @@ class Converter:
         """
         Transcribe an audio between a sub_start and a sub_end value (s)
         :param filename: name of the audio file
-        :param stt_model: Speech to text model
-        :param stt_tokenizer: Speech to text model's tokenizer
-        :param myaudio: AudioSegment file
+        :param audio: AudioSegment file
         :param sub_start: start value (s) of the considered audio part to transcribe
         :param sub_end: end value (s) of the considered audio part to transcribe
         :param index: audio file counter
@@ -167,11 +165,8 @@ class Converter:
         """
         We keep each silence value if it is sufficiently distant from its neighboring values, without being too much
         :param silence_list: List with silences intervals
-        :param min_space: Minimum temporal distance between two silences
-        :param max_space: Maximum temporal distance between two silences
         :param start: int value (seconds)
         :param end: int value (seconds)
-        :param srt_token: Enable/Disable generate srt file (choice fixed by user)
         :return: list with equally distributed silences
         """
         # If starts != 0, we need to adjust end value since silences detection is performed on the trimmed/cut audio
@@ -283,20 +278,12 @@ class Converter:
                           txt_text, sub_start, sub_end):
         """
         Display results
-        :param diarization_token: Differentiate or not the speakers (choice fixed by user)
-        :param summarize_token: Summarize or not the transcript (choice fixed by user)
-        :param srt_token: Enable/Disable generate srt file (choice fixed by user)
-        :param timestamps_token: Display and save or not the timestamps (choice fixed by user)
         :param transcription: transcript of the considered audio
         :param save_result: whole process
         :param txt_text: generated .txt transcript
-        :param srt_text: generated .srt transcript
-        :param srt_index : numeric counter that identifies each sequential subtitle
         :param sub_start: start value (s) of the considered audio part to transcribe
         :param sub_end: end value (s) of the considered audio part to transcribe
-        :param elt: timestamp (diarization case only, otherwise elt = None)
         """
-        # Display will be different depending on the mode (dia, no dia, dia_ts, nodia_ts)
        
        
         temp_timestamps = str(timedelta(milliseconds=sub_start)).split(".")[0] + " --> " + \
