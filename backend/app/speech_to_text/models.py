@@ -1,6 +1,6 @@
 # Speaker diarization
-speaker_diarization="pyannote/speaker-diarization-3.1"
-diarization_pipe_token="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"
+# speaker_diarization="pyannote/speaker-diarization-3.1"
+# diarization_pipe_token="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"
 
 # English speech to text model
 speech_to_text="facebook/hubert-large-ls960-ft"
