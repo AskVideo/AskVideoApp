@@ -3,10 +3,10 @@
  * @see https://v0.dev/t/tAXZDfu6IF3
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-export default function Component() {
+const WelcomePage = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="flex justify-between items-center p-4">
@@ -54,4 +54,6 @@ export default function Component() {
     </div>
   )
 }
+
+export default WelcomePage;
 

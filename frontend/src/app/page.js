@@ -1,10 +1,10 @@
-import LoginPage from '../components/ui/LoginPage';
+import WelcomePage from '../../pages/WelcomePage';
 
-function App() {
+const App = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <LoginPage />
+        <WelcomePage />
       </header>
     </div>
   );
