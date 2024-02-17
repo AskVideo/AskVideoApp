@@ -1,12 +1,20 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/tAXZDfu6IF3
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
+import React from 'react';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/router' // Import useRouter
 
-const WelcomePage = () => {
+export default function Home() {
+
+  const router = useRouter() // Use useRouter hook to get the router object
+
+  // Function to handle navigation to the login page
+  const navigateToLogin = () => {
+    router.push('/login') // Replace '/login' with the path to your login page
+  }
+  const navigateToSignUp = () => {
+    router.push('/signup') // Replace '/login' with the path to your login page
+  }
+  
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="flex justify-between items-center p-4">
@@ -40,8 +48,8 @@ const WelcomePage = () => {
           </h2>
           <p className="mb-8">Express your gratitude with a personalized message.</p>
           <div className="space-x-4">
-            <Button className="bg-blue-500 hover:bg-blue-700 text-white">Log in</Button>
-            <Button className="bg-blue-500 hover:bg-blue-700 text-white">Sign up</Button>
+            <Button className="bg-blue-500 hover:bg-blue-700 text-white" onClick={navigateToLogin}>Log in</Button>
+            <Button className="bg-blue-500 hover:bg-blue-700 text-white" onClick={navigateToSignUp}>Sign up</Button>
           </div>
         </section>
         <section className="max-w-md" id="about">
@@ -55,5 +63,4 @@ const WelcomePage = () => {
   )
 }
 
-export default WelcomePage;
 
