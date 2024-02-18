@@ -3,6 +3,33 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 export default function Component() {
+  const signup = async () => {
+    let firstName= document.getElementById("first-name").value;
+    let lastName = document.getElementById("last-name").value;
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+
+    let payload = {
+      "name": firstName,
+      "surname": lastName,
+      "email": email,
+      "password": password
+    }
+    try{
+        const response = await fetch('http://127.0.0.1:5000/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    })
+        .then(async response => {
+          //Success or error msg
+          console.log(response.json())
+        })
+    }catch(err)  {
+      console.log(err);
+    }
+
+  }
   return (
     <div className="mx-auto max-w-sm space-y-6">
       <div className="space-y-2 text-center">
@@ -28,7 +55,7 @@ export default function Component() {
           <Label htmlFor="password">Password</Label>
           <Input id="password" required type="password" />
         </div>
-        <Button className="w-full" type="submit">
+        <Button className="w-full" type="submit" onClick={signup}>
           Sign Up
         </Button>
       </div>
