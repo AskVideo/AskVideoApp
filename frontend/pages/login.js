@@ -48,7 +48,7 @@ export default function SignInComponent() {
           <Button className="w-full" type="submit">Sign In</Button>
         </div>
         <div className="text-center text-sm">
-          <Link className="underline" href="#">
+          <Link className="underline" href="/">
             Forgot your password?
           </Link>
         </div>

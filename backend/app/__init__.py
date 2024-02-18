@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_login import LoginManager
+from flask_cors import CORS
 from app.config import Config
 from app.database.db_init import db
 from app.database.model import *
@@ -22,6 +22,8 @@ def create_app(config_class=Config):
     @login_manager.user_loader
     def load_user(user_id):
         return MainFunc.get(User, id=int(user_id))
+    
+    CORS(app, origins='http://localhost:3000')
     
     # Register blueprints
     from app.user_bp import bp as user_bp
