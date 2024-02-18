@@ -1,34 +1,36 @@
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import React, { useState } from 'react';
+import axios from 'axios';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default function Component() {
-  const login = async () => {
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
+export default function SignInComponent() {
+  const [formData, setFormData] = useState({
+    'e-mail': '',
+    password: '',
+  });
 
-    let payload = {
-      "email": email,
-      "password": password
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Replace the URL with your backend's URL, e.g., http://localhost:3000/login
+      const response = await axios.post('http://localhost:5000/login', formData); 
+      console.log('Login success:', response.data);
+      // Handle success here (e.g., navigate to another page or show a success message)
+    } catch (error) {
+      console.error('Login error:', error.response ? error.response.data : error.message);
+      // Handle errors here (e.g., show error message)
     }
-    try{
-          const response = await fetch('http://127.0.0.1:5000/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json'},
-          body: JSON.stringify(payload)
-      })
-        .then(async response => {
-          //Success or error msg
-          console.log(response.json())
-        })
-    }catch(err)  {
-      console.log(err);
-    }
+  };
 
-  }
   return (
-    <div className="flex items-center min-h-screen p-6 space-y-6 md:justify-center md:space-y-10">
+    <form className="flex items-center min-h-screen p-6 space-y-6 md:justify-center md:space-y-10" onSubmit={handleSubmit}>
       <div className="w-full max-w-sm space-y-4">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-bold">Sign In</h1>
@@ -37,13 +39,13 @@ export default function Component() {
         <div className="space-y-2">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" placeholder="m@example.com" type="email" />
+            <Input id="e-mail" placeholder="m@example.com" type="email" value={formData['e-mail']} onChange={handleChange} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" />
+            <Input id="password" type="password" value={formData.password} onChange={handleChange} />
           </div>
-          <Button className="w-full" onClick={login}>Sign In</Button>
+          <Button className="w-full" type="submit">Sign In</Button>
         </div>
         <div className="text-center text-sm">
           <Link className="underline" href="/">
@@ -51,7 +53,6 @@ export default function Component() {
           </Link>
         </div>
       </div>
-    </div>
-  )
+    </form>
+  );
 }
-

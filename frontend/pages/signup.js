@@ -1,37 +1,39 @@
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import React, { useState } from 'react';
+import axios from 'axios';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-export default function Component() {
-  const signup = async () => {
-    let firstName= document.getElementById("first-name").value;
-    let lastName = document.getElementById("last-name").value;
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
+export default function SignupComponent() {
+  const [formData, setFormData] = useState({
+    name: '',
+    surname: '',
+    'e-mail': '',
+    password: '',
+  });
 
-    let payload = {
-      "name": firstName,
-      "surname": lastName,
-      "email": email,
-      "password": password
+  const handleChange = (e) => {
+    // Use e.target.id for the key if the id matches the backend keys
+    // Otherwise, use a mapping or manual assignment
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Replace the URL with your backend's URL, e.g., http://localhost:3000/signup
+      const response = await axios.post('http://localhost:5000/signup', formData); 
+      console.log('Signup success:', response.data);
+      // Handle success here (e.g., navigate to another page or show a success message)
+    } catch (error) {
+      console.error('Signup error:', error.response ? error.response.data : error.message);
+      // Handle errors here (e.g., show error message)
     }
-    try{
-        const response = await fetch('http://127.0.0.1:5000/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-    })
-        .then(async response => {
-          //Success or error msg
-          console.log(response.json())
-        })
-    }catch(err)  {
-      console.log(err);
-    }
+  };
 
-  }
   return (
-    <div className="mx-auto max-w-sm space-y-6">
+    <form className="mx-auto max-w-sm space-y-6" onSubmit={handleSubmit}>
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold">Sign Up</h1>
         <p className="text-gray-500 dark:text-gray-400">Enter your information to create an account</p>
@@ -39,27 +41,24 @@ export default function Component() {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="first-name">First name</Label>
-            <Input id="first-name" placeholder="Lee" required />
+            <Label htmlFor="name">First name</Label>
+            <Input id="name" placeholder="Lee" required value={formData.name} onChange={handleChange} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="last-name">Last name</Label>
-            <Input id="last-name" placeholder="Robinson" required />
+            <Label htmlFor="surname">Last name</Label>
+            <Input id="surname" placeholder="Robinson" required value={formData.surname} onChange={handleChange} />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" placeholder="m@example.com" required type="email" />
+          <Label htmlFor="e-mail">Email</Label>
+          <Input id="e-mail" type="email" placeholder="m@example.com" required value={formData['e-mail']} onChange={handleChange} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" required type="password" />
+          <Input id="password" type="password" required value={formData.password} onChange={handleChange} />
         </div>
-        <Button className="w-full" type="submit" onClick={signup}>
-          Sign Up
-        </Button>
+        <Button className="w-full" type="submit">Sign Up</Button>
       </div>
-    </div>
-  )
+    </form>
+  );
 }
-
