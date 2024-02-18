@@ -11,8 +11,9 @@ class UserAuth:
 
     def login(self, data):
         try:
-            email = data['e-mail']
+            email = data['email']
             password = data['password']
+            print(current_user)
 
             if current_user.is_authenticated:
                 return Response(409, "User already logged in", {})
@@ -47,7 +48,7 @@ class UserAuth:
         try:
             name = data['name']
             surname = data['surname']
-            email = data['e-mail']
+            email = data['email']
             password = data['password']
 
             # Check email format
