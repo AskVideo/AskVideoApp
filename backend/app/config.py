@@ -1,3 +1,3 @@
 class Config:
-    SQLALCHEMY_DATABASE_URI='postgresql://drtelbvoxmkhjx:e641b09f84250031f0dd9f3ec4fd3b957d6b052b3e4ae444743fb20eb31e0a68@ec2-34-236-199-229.compute-1.amazonaws.com:5432/dcnkv2rebo2piv'
+    SQLALCHEMY_DATABASE_URI='postgresql://albcspehyxvqog:9385e7a03d2fea1ded09b1edbcb7944ba3b6aef0399148ed53554c796703e033@ec2-34-238-185-225.compute-1.amazonaws.com:5432/d320da5nmnkl9o'
     SECRET_KEY='8c06d9793416fcfcd7841d71'

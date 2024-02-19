@@ -23,7 +23,7 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return MainFunc.get(User, id=int(user_id))
     
-    CORS(app, origins='http://localhost:3000')
+    CORS(app, origins='http://localhost:3001')
     
     # Register blueprints
     from app.user_bp import bp as user_bp
