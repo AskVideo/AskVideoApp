@@ -1,4 +1,4 @@
-from flask import request, session
+from flask import request
 from flask_login import login_required
 from app.user_bp import bp
 from app import user_auth

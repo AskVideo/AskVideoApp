@@ -4,15 +4,32 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from 'next/router' // Import useRouter
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
+import { data } from 'autoprefixer';
 
 export default function SignInComponent() {
+  const router = useRouter() // Use useRouter hook to get the router object
+
   const [formData, setFormData] = useState({
     'e-mail': '',
     password: '',
   });
+  const [error, setError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleError = (errorMsg, isError) => {
+    setErrorMsg(errorMsg)
+    setError(isError);
   };
 
   const handleSubmit = async (e) => {
@@ -20,9 +37,15 @@ export default function SignInComponent() {
 
     try {
       // Replace the URL with your backend's URL, e.g., http://localhost:3000/login
-      const response = await axios.post('http://localhost:5000/login', formData); 
+      const response = await axios.post('http://localhost:5000/login', formData);
+
       console.log('Login success:', response.data);
-      // Handle success here (e.g., navigate to another page or show a success message)
+      if (response.data.code == 200) {
+        router.push('/search')
+      } else {
+        handleError(response.data.msg, true)
+        setTimeout(function() { handleError("", false) }, 5000);
+      }
     } catch (error) {
       console.error('Login error:', error.response ? error.response.data : error.message);
       // Handle errors here (e.g., show error message)
@@ -52,6 +75,14 @@ export default function SignInComponent() {
             Forgot your password?
           </Link>
         </div>
+        {error && 
+        (<Alert id="alert" variant="destructive">
+         <ExclamationTriangleIcon className="h-4 w-4" />
+         <AlertTitle id="alert-title">Error</AlertTitle>
+         <AlertDescription id="alert-desc">
+          {errorMsg}
+         </AlertDescription>
+        </Alert>)}
       </div>
     </form>
   );

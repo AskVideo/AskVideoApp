@@ -11,10 +11,9 @@ class UserAuth:
 
     def login(self, data):
         try:
-            email = data['email']
+            email = data['e-mail']
             password = data['password']
-            print(current_user)
-
+  
             if current_user.is_authenticated:
                 return Response(409, "User already logged in", {})
         
