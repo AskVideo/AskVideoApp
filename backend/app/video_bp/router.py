@@ -2,23 +2,22 @@ from flask import request, jsonify
 from app.video_bp import bp
 from app.database.model import User, Sessions, SessionContent, Video, MainFunc
 from app import converter
+import json
 
 @bp.route("/search", methods=['POST'])
 def search():
-    data = request.json
-    query = data['query']
-    result = converter.search_yt(query=query, k=4)
-    response = { "code" : 200, 
-                "msg" : "Search results",
-                "data" : result
-        } 
+    data = request.get_data()
+    args = json.loads(data)
+    response = converter.search_yt(query=args["query"], k=4)
     return jsonify(response)
 
-@bp.route("/video/details/<video_id>", methods=['GET'])
+@bp.route("/details/<string:video_id>", methods=['POST'])
 def get_video_details(video_id):
+    transcript = converter.video_to_text("https://youtube.com/watch?v={video_id}".format(video_id=video_id))
     video_details = {
         "title": "Sample Video Title",
         "url": f"https://youtube.com/watch?v={video_id}",
-        "thumbnail_url": f"https://img.youtube.com/vi/{video_id}/0.jpg"
+        "thumbnail_url": f"https://img.youtube.com/vi/{video_id}/0.jpg",
+        "transcript": transcript
     }
     return jsonify(video_details)

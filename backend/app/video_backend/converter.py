@@ -1,7 +1,9 @@
+import os
 import whisper
 from pytube import YouTube, Search
 import logging
 from app.database.qdrant import QdrantDb
+from app.user_backend.manager import Response
 from langchain.docstore.document import Document
 from langchain.text_splitter import CharacterTextSplitter
 
@@ -22,31 +24,41 @@ class Converter:
         return docs
 
 
-    def text_from_uploaded_file(self, video_path):
-        result = self.model.transcribe(video_path)
+    def video_to_text(self, url):
+        try:
+            audio = self._download_video(url)
+            result = self.model.transcribe(audio)
+            os.remove("./tmp_audio")
+            return result
+        except Exception as e:
+            logging.error("Video to Text Error")
+            logging.error(e)
+        
 
     def search_yt(self, query, k=10):
-        searchResults = []
-        s = Search(query)
-        while len(s.results) < k:
-            s.get_next_results()
-
-        for v in s.results[0:k]:
-            video_id = v.watch_url.split('v=')[1]
-            thumbnail_url = f"https://img.youtube.com/vi/{video_id}/0.jpg"
-            searchResults.append({'title': v.title, 'url': v.watch_url, 'thumbnail_url': thumbnail_url})
-            print ("searchhhh")
-            print (searchResults)
-
-        
-        return searchResults
-
-    def Download(self,url):
-        youtubeObject = YouTube(url)
-        youtubeObject = youtubeObject.streams.filter(res="360p").first()
         try:
-            youtubeObject.download()
+            searchResults = []
+            s = Search(query)
+            while len(s.results) < k:
+                s.get_next_results()
+
+            for v in s.results[0:k]:
+                video_id = v.watch_url.split('v=')[1]
+                thumbnail_url = f"https://img.youtube.com/vi/{video_id}/0.jpg"
+                searchResults.append({'title': v.title, 'url': v.watch_url, 'thumbnail_url': thumbnail_url})
+
+            return Response(200, "Search results", searchResults)
+        except Exception as e:
+            logging.error(e)
+            return Response(500, "Something went wrong while youtube video searching", searchResults)
+        
+        
+
+    def _download_video(self, url):
+        try:
+            youtubeObject = YouTube(url)
+            audio_stream = youtubeObject.streams.filter(only_audio=True).first()
+            return audio_stream.download(output_path=".", filename="tmp_audio")
         except Exception as e:
             logging.error(e)
             return
-        logging.info("Download is completed successfully")

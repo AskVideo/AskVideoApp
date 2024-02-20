@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -6,6 +7,25 @@ export default function Component() {
   const [videoId, setVideoId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+  const handleSearch = async () => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const vidId = urlParams.get('video');
+      const response = await axios.post("http://localhost:5000/video/details/" + vidId, {"payload": "das"});
+      console.log(response.data); 
+    } catch (error) {
+      console.error("Search error:", error);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const vidId = urlParams.get('video');
@@ -38,9 +58,11 @@ export default function Component() {
           className="w-full" 
           placeholder="Search in video" 
           type="search" 
+          onChange={handleSearchChange}
+          onKeyPress={handleKeyPress}
           value={searchQuery}
         />
-        <Button className="w-full mt-2">Search</Button>
+        <Button className="w-full mt-2"  onClick={handleSearch}>Search</Button>
       </div>
     </div>
   )
