@@ -13,12 +13,3 @@ def search():
                 "data" : result
         } 
     return jsonify(response)
-
-@bp.route("/video/details/<video_id>", methods=['GET'])
-def get_video_details(video_id):
-    video_details = {
-        "title": "Sample Video Title",
-        "url": f"https://youtube.com/watch?v={video_id}",
-        "thumbnail_url": f"https://img.youtube.com/vi/{video_id}/0.jpg"
-    }
-    return jsonify(video_details)
