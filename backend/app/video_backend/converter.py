@@ -28,11 +28,17 @@ class Converter:
     def search_yt(self, query, k=10):
         searchResults = []
         s = Search(query)
-        while(len(s.results) < k):
+        while len(s.results) < k:
             s.get_next_results()
 
         for v in s.results[0:k]:
-            searchResults.append({'title':v.title,'url': v.watch_url})
+            video_id = v.watch_url.split('v=')[1]
+            thumbnail_url = f"https://img.youtube.com/vi/{video_id}/0.jpg"
+            searchResults.append({'title': v.title, 'url': v.watch_url, 'thumbnail_url': thumbnail_url})
+            print ("searchhhh")
+            print (searchResults)
+
+        
         return searchResults
 
     def Download(self,url):
