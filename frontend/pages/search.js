@@ -31,8 +31,9 @@ export default function Component() {
       const response = await axios.post("http://localhost:5000/video/search", {
         query: searchQuery,
       });
-      console.log(response.data.data); // Log to check the structure
+      console.log(response.data.data); 
       setVideos(response.data.data);
+      updateRecentSearches(searchQuery)
     } catch (error) {
       console.error("Search error:", error);
     }
