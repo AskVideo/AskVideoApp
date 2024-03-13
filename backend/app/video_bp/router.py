@@ -1,6 +1,5 @@
 from flask import request, jsonify
 from app.video_bp import bp
-from app.database.model import User, Sessions, SessionContent, Video, MainFunc
 from app import converter
 import json
 
@@ -13,7 +12,7 @@ def search():
 
 @bp.route("/details/<string:video_id>", methods=['POST'])
 def get_video_details(video_id):
-    transcript = converter.video_to_text("https://youtube.com/watch?v={video_id}".format(video_id=video_id))
+    transcript = converter.video_to_text("https://youtube.com/watch?v={video_id}".format(video_id=video_id), video_id=video_id)
     video_details = {
         "title": "Sample Video Title",
         "url": f"https://youtube.com/watch?v={video_id}",
