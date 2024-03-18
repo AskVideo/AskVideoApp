@@ -4,11 +4,12 @@ from app.config import Config
 from app.database.db_init import db
 from app.database.model import *
 from app.video_backend.converter import Converter
-from app.user_backend.manager import UserAuth, login_manager
+from app.user_backend.manager import UserAuth, UserActions, login_manager
 
 # Load Models
 converter = Converter()
 user_auth = UserAuth()
+user_actions = UserActions()
 
 def create_app(config_class=Config):
     app = Flask(__name__)

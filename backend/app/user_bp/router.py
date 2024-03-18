@@ -1,7 +1,7 @@
 from flask import request
 from flask_login import login_required
 from app.user_bp import bp
-from app import user_auth
+from app import user_auth, user_actions
 import json
 
 
@@ -23,4 +23,18 @@ def signup():
     data = request.get_data()
     args = json.loads(data)
     response = user_auth.signup(args)
+    return response
+
+@bp.route("/sessions", methods=['GET'])
+def get_sessions():
+    data = request.get_data()
+    args = json.loads(data)
+    response = user_actions.get_sessions(args)
+    return response
+
+@bp.route("/session/content", methods=['GET'])
+def get_sess_content():
+    data = request.get_data()
+    args = json.loads(data)
+    response = user_actions.get_session_content(args)
     return response

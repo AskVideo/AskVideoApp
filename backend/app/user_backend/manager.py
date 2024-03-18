@@ -27,7 +27,7 @@ class UserAuth:
             
 
             login_user(user)
-            return Response(200, "User login successfully", {}) 
+            return Response(200, "User login successfully", {"user_id": user.id}) 
         except Exception as e:
             logging.error("Login Error")
             logging.error(e)
@@ -72,6 +72,45 @@ class UserAuth:
             return True
         return False
     
+class UserActions:
+    def __init__(self):
+        pass
+
+    def get_sessions(self, data):
+        try:
+            user_id = data["user_id"]
+            user_sessions = MainFunc.get_all(Sessions, user_id=user_id)
+            result = []
+            for sess in user_sessions:
+                result.append({"sess_id": sess.id, "title": sess.session_name})
+
+            return Response(200, "Sessions", result)
+        except Exception as e:
+            logging.error("Get Sessions Error")
+            logging.error(e)
+            return Response(500, "Something went wrong while getting sessions")
+        
+    def get_session_content(self, data):
+        try:
+            sess_id = data["sess_id"]
+            contents = MainFunc.get_all(SessionContent, session_id = sess_id)
+            result = []
+            for content in contents:
+                video_info = {}
+                if content.video:
+                    video = content.video
+                    video_info = {"id": video.id, "video_id": video.video_id, "start": video.start, "end": video.end}
+                result.insert(content.seqsequence, {"id": content.id, "sequence": content.sequence, "text": content.content, "video_info": video_info})
+
+            return Response(200, "Session Content", result)
+        except Exception as e:
+            logging.error("Get Session Content Error")
+            logging.error(e)
+            return Response(500, "Something went wrong while getting session content")
+
+        
+
+
 class Response:
     def __new__(self, code, msg, data):
         return {"code": code, "msg": msg, "data": data}

@@ -33,13 +33,14 @@ class User(UserMixin, db.Model):
 class Sessions(db.Model):
     __tablename__ = 'sessions'
     id = db.Column(db.Integer, primary_key=True)
+    session_name = db.Column(db.String(80), default="Ask the video")
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    videos = db.relationship('Video', backref='session', lazy=True)
     session_content = db.relationship('SessionContent', backref='session', lazy=True)
 
-    def __init__(self, user_id):
-        self.user_id = user_id
+    def __init__(self, id):
+        self.user_id = id
 
     def __repr__(self):
         return '<Sessions(user_id: %r)> ' % (self.user_id)
@@ -50,12 +51,15 @@ class SessionContent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sequence = db.Column(db.Integer)
     content = db.Column(db.String(None))
+    
     session_id = db.Column(db.Integer, db.ForeignKey('sessions.id'), nullable=False)
 
-    def __init__(self, sequence, content, session_id):
+    video = db.relationship('Video', backref='session_content', lazy=True)
+
+    def __init__(self, sequence, content, id):
         self.sequence = sequence
         self.content = content
-        self.session_id = session_id
+        self.session_id = id
 
     def __repr__(self):
         return '<SessionContent(seq: %r, content: %r)>' % (self.sequence, self.content)
@@ -67,13 +71,14 @@ class Video(db.Model):
     video_id = db.Column(db.String(None))
     start = db.Column(db.Float)
     end = db.Column(db.Float)
-    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id'), nullable=False)
+    
+    sess_content_id = db.Column(db.Integer, db.ForeignKey('session_content.id'), nullable=False)
 
-    def __init__(self, video_id, start, end, session_id):
+    def __init__(self, video_id, start, end, id):
         self.video_id = video_id
         self.start = start
         self.end = end
-        self.session_id = session_id
+        self.sess_content_id = id
 
     def __repr__(self):
         return '<Video(video_id: %r)>' % (self.video_id)
@@ -84,8 +89,8 @@ class MainFunc:
         db.session.add(obj)
         db.session.commit()
 
-    def get_all(obj):
-        return obj.query.all()
+    def get_all(obj, **kwargs):
+        return obj.query.filter_by(**kwargs).all()
     
     def get(obj, **kwargs):
         return obj.query.filter_by(**kwargs).first() 
