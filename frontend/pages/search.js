@@ -11,7 +11,6 @@ export default function Component() {
   const router = useRouter(); 
 
   useEffect(() => {
-    // Load recent searches from localStorage
     const searches = localStorage.getItem("recentSearches");
     if (searches) {
       setRecentSearches(JSON.parse(searches));
@@ -19,9 +18,9 @@ export default function Component() {
   }, []);
 
   const updateRecentSearches = (searchTerm) => {
-    const updatedSearches = [searchTerm, ...recentSearches].slice(0, 4); // Keep only the last 4 searches
+    const updatedSearches = [searchTerm, ...recentSearches].slice(0, 4); 
     setRecentSearches(updatedSearches);
-    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches)); // Save to localStorage
+    localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
   };
 
   const handleSearchChange = (e) => {
@@ -45,7 +44,7 @@ export default function Component() {
     try {
       await axios.post("http://localhost:5000/logout");
       // Handle any post-logout logic here, such as redirecting to a login page
-      router.push("/login"); // Redirect to login page after logout
+      router.push("/"); // Redirect to login page after logout
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -59,12 +58,21 @@ export default function Component() {
 
   const handleVideoSelect = (videoUrl) => {
     const videoId = new URL(videoUrl).searchParams.get("v");
-    if (videoId) {
-      window.location.href = `http://localhost:3001/searchinvideo?video=${encodeURIComponent(
+    const userId = localStorage.getItem("user_id")
+    console.log(userId);
+    try {
+      const response = axios.post('http://localhost:5000/video/preprocess', {
+        user_id: userId,
+        video_id: videoId,
+        session_name: searchQuery
+      });
+      if (response.data.code == 200) {
+        window.location.href = `http://localhost:3001/searchinvideo?video=${encodeURIComponent(
         videoId
       )}`;
-    } else {
-      console.error("Video ID is undefined");
+      }
+    }catch(error){
+      console.error("error");
     }
   };
 

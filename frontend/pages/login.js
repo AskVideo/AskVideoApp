@@ -38,7 +38,8 @@ export default function SignInComponent() {
     try {
       // Replace the URL with your backend's URL, e.g., http://localhost:3000/login
       const response = await axios.post('http://localhost:5000/login', formData);
-
+      console.log(response.data);
+      localStorage.setItem("user_id", JSON.stringify(response.data.user_id)); // Save user_id to localStorage
       console.log('Login success:', response.data);
       if (response.data.code == 200) {
         router.push('/search')

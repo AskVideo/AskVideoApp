@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/router';
+
 
 export default function SignupComponent() {
   const [formData, setFormData] = useState({
@@ -25,6 +27,7 @@ export default function SignupComponent() {
       // Replace the URL with your backend's URL, e.g., http://localhost:3000/signup
       const response = await axios.post('http://localhost:5000/signup', formData); 
       console.log('Signup success:', response.data);
+      router.push("/login");
       // Handle success here (e.g., navigate to another page or show a success message)
     } catch (error) {
       console.error('Signup error:', error.response ? error.response.data : error.message);
