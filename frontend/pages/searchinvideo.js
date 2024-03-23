@@ -1,39 +1,84 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useLocalStorage } from 'react-use';
-
+import { useRouter } from "next/router";
+import { useLocalStorage } from "react-use";
 
 export default function Component() {
-  const [videoId, setVideoId] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [videoId, setVideoId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState([]);
-  const [isSearchPerformed, setIsSearchPerformed] = useState(false);
-
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const router = useRouter();
   const [userId] = useLocalStorage("user_id", null);
+  const [messages, setMessages] = useState([]);
 
+  const miniClips = [
+    {
+      id: "dQw4w9WgXcQ",
+      title: "Clip 1",
+      thumbnailUrl: "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg",
+    },
+    {
+      id: "kxopViU98Xo",
+      title: "Clip 2",
+      thumbnailUrl: "https://img.youtube.com/vi/kxopViU98Xo/0.jpg",
+    },
+  ];
 
+  const handleChatSubmit = async (message) => {
+    if (message.trim() === "") return;
+    //const response = await axios.post('YOUR_BACKEND_ENDPOINT', { query: message });
+    //const newMiniClips = response.data.miniClips;
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      { type: "search", text: message, miniClips: miniClips },
+    ]);
+  };
 
-  const fetchSessions = async () => {
-    try {
-      const response = await axios.post('http://localhost:5000/sessions', { user_id: userId });
-      console.log(response)
-      const sessionTitles = response.data.map(session => session.title);
-      setRecentSearches(sessionTitles);
-    } catch (error) {
-      console.error("Failed to fetch sessions", error);
+  const showMiniClipsForMessage = (messageIndex) => {
+    const message = messages[messageIndex];
+    if (message && message.miniClips) {
+      // Set the clips to state, display dropdown, or directly render clips as needed
+      // For example, you could use a state to show the clips in a dropdown:
+      setMiniClipsReceivedFromSearch(message.miniClips);
+      setIsDropdownOpen(true); // If using a dropdown to show the clips
     }
   };
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+  useEffect(() => {
+    fetchSessions();
+    fetchMiniClips();
+    const urlParams = new URLSearchParams(window.location.search);
+    setVideoId(urlParams.get("video"));
+  }, []);
+
+  const fetchMiniClips = async () => {
+    // Implementation depends on your backend setup
+    // Assume it sets miniClips state with an array of clip URLs or IDs
   };
 
-  const handleSearch = async () => {
-    setIsSearchPerformed(true);
-    if (searchQuery && !recentSearches.includes(searchQuery)) {
-      setRecentSearches(prev => [...prev, searchQuery].slice(-5));
+  const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:5000/logout");
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const fetchSessions = async () => {
+    try {
+      const response = await axios.post("http://localhost:5000/sessions", {
+        user_id: userId,
+      });
+      console.log(response);
+      const sessionTitles = response.data.data.map((session) => session.title);
+      setRecentSearches(sessionTitles);
+    } catch (error) {
+      console.error("Failed to fetch sessions", error);
     }
   };
 
@@ -42,63 +87,154 @@ export default function Component() {
     setIsSearchPerformed(true);
   };
 
-  useEffect(() => {
-    fetchSessions(); // Fetch sessions when the component mounts
-    const urlParams = new URLSearchParams(window.location.search);
-    setVideoId(urlParams.get('video'));
-  }, []);
-
   return (
-    <div className="flex h-screen">
-      <div className="w-1/6 bg-gray-200 p-4">
-        <h2 className="font-bold mb-4">Recent Searches</h2>
-        <ul>
-          {recentSearches.map((query, index) => (
-            <li key={index} className="cursor-pointer" onClick={() => handleRecentSearchClick(query)}>
-              {query}
-            </li>
-          ))}
-        </ul>
+    <div className="bg-gray-100 h-screen">
+      <div className="absolute top-5 right-5 flex items-center space-x-4">
+        <Button onClick={handleLogout}>Logout</Button>
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="w-full max-w-3xl px-4 py-8">
-          {isSearchPerformed ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {miniClips.map((clip, index) => (
-                <iframe
-                  key={index}
-                  width="100%"
-                  height="315"
-                  src={`https://www.youtube.com/embed/${clip.split('v=')[1]}`}
-                  title="YouTube video"
-                  frameBorder="0"
-                  allowFullScreen>
-                </iframe>
-              ))}
+
+      {/* Main content area */}
+
+      <div className="flex h-screen">
+        {/* Recent Searches Sidebar */}
+
+        <div className="w-1/6 bg-gray-200 p-4">
+          <h2 className="font-bold mb-4 ">Recent Searches</h2>
+          <ul>
+            {recentSearches.map((search, index) => (
+              <li
+                key={index}
+                className="cursor-pointer"
+                onClick={() => handleRecentSearchClick(search)}
+              >
+                {search}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Chat and video section */}
+        <div className="flex-1 flex flex-col items-center p-4">
+          {/* Video display */}
+          {videoId && (
+            <div className="w-full max-w-md p-2 mb-4">
+              <iframe
+                className="aspect-video rounded-lg object-cover"
+                width="100%"
+                height="180"
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video player"
+                frameBorder="0"
+                allowFullScreen
+              ></iframe>
             </div>
-          ) : videoId ? (
-            <iframe
-              width="100%"
-              height="480"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title="YouTube video"
-              frameBorder="0"
-              allowFullScreen>
-            </iframe>
-          ) : null}
-        </div>
-        <div className="w-full max-w-xl">
-          <Input
-            className="w-full"
-            placeholder="Search in video"
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-          <Button className="mt-2" onClick={handleSearch}>
-            Search
-          </Button>
+          )}
+
+          {/* Mini Clips Dropdown */}
+          {chatMessages.length > 0 && (
+            <div className="relative mb-4">
+              <Button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                Mini Clips
+              </Button>
+              {isDropdownOpen && (
+                <ul className="absolute w-56 bg-white border rounded shadow-lg mt-1 z-10">
+                  {miniClips.map((clip, index) => (
+                    <li
+                      key={index}
+                      className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                      onClick={() => {
+                        setVideoId(clip.id);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      {clip.title}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Chat Interface */}
+          <div className="w-full max-w-2x1 bg-grey rounded-lg border p-4 flex flex-col space-y-2">
+            <div className="overflow-y-auto h-96">
+              {/* Messages and Mini Clips */}
+                {messages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`p-2 rounded ${
+                      msg.sender === "user"
+                        ? "bg-blue-200 ml-auto"
+                        : "bg-gray-200"
+                    }`}
+                  >
+                    {msg.type === "text" && <p>{msg.text}</p>}
+                    {msg.type === "search" && (
+                      <>
+                        <p className="font-bold">{msg.text}</p>
+                        <Button
+                          onClick={() => showMiniClipsForMessage(index)}
+                        >
+                          Show Mini Clips
+                        </Button>
+                      </>
+                    )}
+                    {msg.type === "miniClip" && (
+                      <div className="mt-2 flex flex-col items-center">
+                        <iframe
+                          className="rounded-lg object-cover w-full"
+                          src={`https://www.youtube.com/embed/${msg.content.id}`}
+                          title={msg.content.title}
+                          frameBorder="0"
+                          allowFullScreen
+                        ></iframe>
+                        <p className="text-xs mt-1">{msg.content.title}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Dropdown for mini clips, if you're using a dropdown approach */}
+                {isDropdownOpen && (
+                  <ul className="absolute w-56 bg-white border rounded shadow-lg mt-1 z-10">
+                    {miniClipsReceivedFromSearch.map((clip, index) => (
+                      <li
+                        key={index}
+                        className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setVideoId(clip.id)}
+                      >
+                        {clip.title}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Input form for new messages */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleChatSubmit(searchQuery);
+                  setSearchQuery("");
+                }}
+                className="flex"
+              >
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 p-2 border rounded-l outline-none"
+                  placeholder="Type a message..."
+                />
+                <Button
+                  type="submit"
+                >
+                  Send
+                </Button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
   );
 }
