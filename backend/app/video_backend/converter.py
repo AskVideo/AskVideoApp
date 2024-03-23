@@ -11,7 +11,7 @@ from app.database.model import Sessions, MainFunc
 class Converter:
     def __init__(self):
         self.model = whisper.load_model("base")
-        self.qdrant = QdrantDb(cloud_api_key="bGKFPZr51MMPXPnxlPQTGlTSqd0Dk8dZyo01b9dLgSo98gWi5anu5A", openai_api_key="")
+        self.qdrant = QdrantDb(cloud_api_key="bGKFPZr51MMPXPnxlPQTGlTSqd0Dk8dZyo01b9dLgSo98gWi5anu5A", openai_api_key="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")
         self.prompt = {"eng": "Answer this question by provided info. Question:{question}\n Info:{info}"}
 
     def ask_video(self, data):
@@ -20,11 +20,12 @@ class Converter:
             video_id = data["video_id"]
             query = data["query"]
 
-            docs = self.qdrant.search_top_k(query=query)
+            docs = self.qdrant.search_top_k(query=query, video_id=video_id)
 
-            # TODO
+            for doc in docs:
+                print(doc)
 
-
+            return Response(500, "Something went wrong while answering question", {})
         except Exception as e:
             logging.error("Ask the Video Error")
             logging.error(e)

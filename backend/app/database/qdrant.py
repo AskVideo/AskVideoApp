@@ -1,9 +1,8 @@
 import os
-import getpass
 from qdrant_client import QdrantClient
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.qdrant import Qdrant
-from qdrant_client.http import models
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 
 
 class QdrantDb:
@@ -36,6 +35,12 @@ class QdrantDb:
             force_recreate=False,
         )
 
-    def search_top_k(self, query,k=10):
-        found_docs = self.qdrant.similarity_search_with_score(query=query, k=k)
+    def search_top_k(self, query, video_id, k=10):
+        openai = OpenAIEmbeddings(openai_api_key=self.openai_api_key,model="text-embedding-ada-002")
+        emmbed_q = openai.embed_query(query)
+        filter = [FieldCondition(key="metadata.video_id", match=MatchValue(value=video_id))]
+        found_docs = self.client.search(collection_name="ask_video", query_vector=emmbed_q,
+                                        query_filter=Filter(
+                                        should=filter
+                                        ),limit=k)
         return found_docs
