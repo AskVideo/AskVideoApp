@@ -39,8 +39,9 @@ class Sessions(db.Model):
 
     session_content = db.relationship('SessionContent', backref='session', lazy=True)
 
-    def __init__(self, id):
-        self.user_id = id
+    def __init__(self, user_id, session_name):
+        self.user_id = user_id
+        self.session_name = session_name
 
     def __repr__(self):
         return '<Sessions(user_id: %r)> ' % (self.user_id)
@@ -95,8 +96,9 @@ class MainFunc:
     def get(obj, **kwargs):
         return obj.query.filter_by(**kwargs).first() 
     
-    def delete(obj):
-        db.session.delete(obj)
+    def delete(obj, **kwargs):
+        tmp = obj.query.filter_by(**kwargs).first()
+        db.session.delete(tmp)
         db.session.commit()
 
     def update(obj, **kwargs):

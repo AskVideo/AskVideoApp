@@ -79,8 +79,8 @@ export default function Component() {
         video_id: videoId,
         session_name: searchQuery 
       });
-
-      if (response.status === 200) {
+      
+      if (response.data.code === 200) {
         window.location.href = `http://localhost:3001/searchinvideo?video=${encodeURIComponent(videoId)}`;
       }
     } catch (error) {

@@ -6,14 +6,12 @@ import logging
 from app.database.qdrant import QdrantDb
 from app.user_backend.manager import Response
 from langchain.docstore.document import Document
-from langchain.text_splitter import CharacterTextSplitter
-from app.database.model import User, Sessions, MainFunc
+from app.database.model import Sessions, MainFunc
 
 class Converter:
     def __init__(self):
         self.model = whisper.load_model("base")
-        self.qdrant = QdrantDb(cloud_api_key='qd2EJwwKcPCH6H5Q3QIqMZD8goCahUNMAFCx2Zbk2HR98lnJaPrUTg', openai_api_key="")
-        self.text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        self.qdrant = QdrantDb(cloud_api_key="bGKFPZr51MMPXPnxlPQTGlTSqd0Dk8dZyo01b9dLgSo98gWi5anu5A", openai_api_key="")
         self.prompt = {"eng": "Answer this question by provided info. Question:{question}\n Info:{info}"}
 
     def ask_video(self, data):
@@ -43,21 +41,23 @@ class Converter:
             audio = self._download_video(url)
             result = self.model.transcribe(audio)
             os.remove("./tmp_audio")
+            
             # Create session for user when video selected
-            MainFunc.create(Sessions(session_name=sess_name, user_id=user_id))
+            MainFunc.create(Sessions(user_id=user_id, session_name=sess_name))
             # When user asks something, we can use language info to select promt for gpt in the future.
-            for seg in result["segmets"]:
-                self._insert_docs(text=seg["text"], video_id=video_id, start_time=seg["start"], end_time=seg["end"], language=result["language"])
+
+            docs = []
+            for seg in result["segments"]:
+                docs.append(Document(page_content=seg["text"], metadata={"video_id": video_id, "start": seg["start"], 
+                                                                         "end": seg["end"], "lang": result["language"]}))
+
+            self.qdrant.instert_docs(docs=docs)
             return Response(200, "Video preprocessed successfully", {})
         except Exception as e:
             logging.error("Video Preprocesse Error")
             logging.error(e)
             return Response(500, "Something went wrong while preprocessing", {})
         
-    def _insert_docs(self, text, video_id, start_time, end_time, language):
-        doc =  [Document(page_content=text, metadata={"video_id": video_id, "start_time": start_time, "end_time": end_time, "lang": language})]
-        docs = self.text_splitter.split_documents(doc)
-        self.qdrant.instert_docs(docs)
 
     def rag(self, text, language, question):
         prompt = self.prompt[language].format(question=question, info=text)
