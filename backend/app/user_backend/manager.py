@@ -33,7 +33,6 @@ class UserAuth:
             logging.error(e)
             return Response(500, "Something went wrong while login.", {})
 
-    @login_required
     def logout(self):
         try:
             logout_user()
@@ -47,7 +46,7 @@ class UserAuth:
         try:
             name = data['name']
             surname = data['surname']
-            email = data['email']
+            email = data['e-mail']
             password = data['password']
 
             # Check email format
