@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/router';
 
 export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
   const [videos, setVideos] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
+  const router = useRouter(); 
 
   useEffect(() => {
     // Load recent searches from localStorage
@@ -39,6 +41,16 @@ export default function Component() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:5000/logout");
+      // Handle any post-logout logic here, such as redirecting to a login page
+      router.push("/login"); // Redirect to login page after logout
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSearch();
@@ -57,7 +69,13 @@ export default function Component() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center h-screen relative">
+      <div className="absolute top-5 right-5 flex items-center space-x-4">
+        <Button onClick={() => router.push("/searchinvideo")}>Profile
+        </Button>
+        {/* Logout Button */}
+        <Button onClick={handleLogout}>Logout</Button>
+      </div>
       <div className="max-w-3xl mx-auto grid gap-4">
         <div>
           <h1 className="text-3xl font-bold">AskVideo</h1>
