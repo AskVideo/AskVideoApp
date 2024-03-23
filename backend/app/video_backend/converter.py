@@ -20,11 +20,12 @@ class Converter:
             video_id = data["video_id"]
             query = data["query"]
 
-            docs = self.qdrant.search_top_k(query=query)
+            docs = self.qdrant.search_top_k(query=query, video_id=video_id)
 
-            # TODO
+            for doc in docs:
+                print(doc)
 
-
+            return Response(500, "Something went wrong while answering question", {})
         except Exception as e:
             logging.error("Ask the Video Error")
             logging.error(e)

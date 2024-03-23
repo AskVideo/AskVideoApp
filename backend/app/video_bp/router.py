@@ -21,5 +21,5 @@ def preprocess():
 def ask():
     data = request.get_data()
     args = json.loads(data)
-    response = converter.preprocess(args)
+    response = converter.ask_video(args)
     return response
