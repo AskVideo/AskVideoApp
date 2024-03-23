@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useLocalStorage } from 'react-use';
 import Link from "next/link";
 import { useRouter } from 'next/router' // Import useRouter
 import {
@@ -15,6 +16,7 @@ import { data } from 'autoprefixer';
 
 export default function SignInComponent() {
   const router = useRouter() // Use useRouter hook to get the router object
+  const [user_id, setId] = useLocalStorage("user_id", null);
 
   const [formData, setFormData] = useState({
     'e-mail': '',
@@ -38,8 +40,7 @@ export default function SignInComponent() {
     try {
       // Replace the URL with your backend's URL, e.g., http://localhost:3000/login
       const response = await axios.post('http://localhost:5000/login', formData);
-      console.log(response.data);
-      localStorage.setItem("user_id", JSON.stringify(response.data.user_id)); // Save user_id to localStorage
+      setId(JSON.stringify(response.data.data.user_id));
       console.log('Login success:', response.data);
       if (response.data.code == 200) {
         router.push('/search')

@@ -2,13 +2,29 @@ import React, { useEffect, useState } from 'react';
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useLocalStorage } from 'react-use';
+
 
 export default function Component() {
   const [videoId, setVideoId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState([]);
-  const [miniClips, setMiniClips] = useState([]);
   const [isSearchPerformed, setIsSearchPerformed] = useState(false);
+
+  const [userId] = useLocalStorage("user_id", null);
+
+
+
+  const fetchSessions = async () => {
+    try {
+      const response = await axios.post('http://localhost:5000/sessions', { user_id: userId });
+      console.log(response)
+      const sessionTitles = response.data.map(session => session.title);
+      setRecentSearches(sessionTitles);
+    } catch (error) {
+      console.error("Failed to fetch sessions", error);
+    }
+  };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -16,27 +32,18 @@ export default function Component() {
 
   const handleSearch = async () => {
     setIsSearchPerformed(true);
-    const newMiniClips = await fetchMiniClips(searchQuery);
-    setMiniClips(newMiniClips);
     if (searchQuery && !recentSearches.includes(searchQuery)) {
       setRecentSearches(prev => [...prev, searchQuery].slice(-5));
     }
   };
 
-  const fetchMiniClips = async (query) => {
-    // Implement the actual API call logic here
-    const response = await axios.get(`http://yourapi/videos/search?query=${query}`);
-    return response.data.clips; // Assuming the response has a property 'clips' with the clip URLs
-  };
-
   const handleRecentSearchClick = async (query) => {
     setSearchQuery(query);
-    const newMiniClips = await fetchMiniClips(query);
-    setMiniClips(newMiniClips);
     setIsSearchPerformed(true);
   };
 
   useEffect(() => {
+    fetchSessions(); // Fetch sessions when the component mounts
     const urlParams = new URLSearchParams(window.location.search);
     setVideoId(urlParams.get('video'));
   }, []);

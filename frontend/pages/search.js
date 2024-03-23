@@ -3,12 +3,16 @@ import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/router';
+import { useLocalStorage } from 'react-use';
+
 
 export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
   const [videos, setVideos] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
   const router = useRouter(); 
+
+  const [userId] = useLocalStorage("user_id", null);
 
   useEffect(() => {
     const searches = localStorage.getItem("recentSearches");
@@ -43,8 +47,7 @@ export default function Component() {
   const handleLogout = async () => {
     try {
       await axios.post("http://localhost:5000/logout");
-      // Handle any post-logout logic here, such as redirecting to a login page
-      router.push("/"); // Redirect to login page after logout
+      router.push("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -56,25 +59,34 @@ export default function Component() {
     }
   };
 
-  const handleVideoSelect = (videoUrl) => {
-    const videoId = new URL(videoUrl).searchParams.get("v");
-    const userId = localStorage.getItem("user_id")
-    console.log(userId);
+  const handleVideoSelect = async (videoUrl) => {
+    console.log(`handleVideoSelect called with URL: ${videoUrl}`);
+  if (!videoUrl) {
+    console.error("handleVideoSelect was called with an undefined or null URL.");
+    return;
+  }
     try {
-      const response = axios.post('http://localhost:5000/video/preprocess', {
-        user_id: userId,
-        video_id: videoId,
-        session_name: searchQuery
-      });
-      if (response.data.code == 200) {
-        window.location.href = `http://localhost:3001/searchinvideo?video=${encodeURIComponent(
-        videoId
-      )}`;
+      const url = new URL(videoUrl);
+      const videoId = url.searchParams.get("v");
+      if (!videoId) {
+        console.error("Video ID (v parameter) is missing from the URL:", videoUrl);
+        return; 
       }
-    }catch(error){
-      console.error("error");
+      console.log(`Video ID: ${videoId}`); 
+
+      const response = await axios.post('http://localhost:5000/video/preprocess', {
+        user_id: userId, 
+        video_id: videoId,
+        session_name: searchQuery 
+      });
+
+      if (response.status === 200) {
+        window.location.href = `http://localhost:3001/searchinvideo?video=${encodeURIComponent(videoId)}`;
+      }
+    } catch (error) {
+      console.error("Error in handleVideoSelect:", error);
     }
-  };
+};
 
   return (
     <div className="flex justify-center items-center h-screen relative">
@@ -122,7 +134,7 @@ export default function Component() {
               <div
                 key={index}
                 className="flex items-start gap-4 relative"
-                onClick={() => handleVideoSelect(video.video_url)}
+                onClick={() => handleVideoSelect(video.url)}
               >
                 <img
                   alt={`Thumbnail for ${video.title}`}
@@ -130,7 +142,9 @@ export default function Component() {
                   height={94}
                   src={video.thumbnail_url}
                   width={168}
-                  onClick={() => handleVideoSelect(video.url)}
+                  onClick={() => {
+                    handleVideoSelect(video.url);
+                  }}
                 />
                 <div className="text-sm">
                   <div className="font-medium line-clamp-2">{video.title}</div>

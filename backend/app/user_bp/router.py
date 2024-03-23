@@ -25,7 +25,7 @@ def signup():
     response = user_auth.signup(args)
     return response
 
-@bp.route("/sessions", methods=['GET'])
+@bp.route("/sessions", methods=['POST'])
 def get_sessions():
     data = request.get_data()
     args = json.loads(data)

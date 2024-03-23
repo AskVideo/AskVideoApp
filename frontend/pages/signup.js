@@ -14,9 +14,9 @@ export default function SignupComponent() {
     password: '',
   });
 
+  const router = useRouter();
+
   const handleChange = (e) => {
-    // Use e.target.id for the key if the id matches the backend keys
-    // Otherwise, use a mapping or manual assignment
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
@@ -24,14 +24,11 @@ export default function SignupComponent() {
     e.preventDefault();
 
     try {
-      // Replace the URL with your backend's URL, e.g., http://localhost:3000/signup
       const response = await axios.post('http://localhost:5000/signup', formData); 
       console.log('Signup success:', response.data);
       router.push("/login");
-      // Handle success here (e.g., navigate to another page or show a success message)
     } catch (error) {
       console.error('Signup error:', error.response ? error.response.data : error.message);
-      // Handle errors here (e.g., show error message)
     }
   };
 
