@@ -57,14 +57,18 @@ class SessionContent(db.Model):
 
     video = db.relationship('Video', backref='session_content', lazy=True)
 
-    def __init__(self, sequence, content, id, video=None):
+    def __init__(self, sequence, content, id):
         self.sequence = sequence
         self.content = content
         self.session_id = id
-        self.video = video
 
     def __repr__(self):
         return '<SessionContent(seq: %r, content: %r)>' % (self.sequence, self.content)
+    
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+        return self
 
 
 class Video(db.Model):
@@ -76,18 +80,14 @@ class Video(db.Model):
     
     sess_content_id = db.Column(db.Integer, db.ForeignKey('session_content.id'), nullable=False)
 
-    def __init__(self, video_id, start, end):
+    def __init__(self, video_id, start, end, sess_content_id):
         self.video_id = video_id
         self.start = start
         self.end = end
+        self.sess_content_id = sess_content_id
 
     def __repr__(self):
         return '<Video(video_id: %r)>' % (self.id)
-    
-    def create(self):
-        db.session.add(self)
-        db.session.commit()
-        return self
 
 class MainFunc:
     def create(obj):

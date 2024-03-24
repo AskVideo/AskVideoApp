@@ -1,6 +1,6 @@
 import os
 import whisper
-import openai
+from openai import OpenAI
 from pytube import YouTube, Search
 import logging
 from app.database.qdrant import QdrantDb
@@ -11,27 +11,27 @@ from app.database.model import Sessions, SessionContent, Video, MainFunc
 class Converter:
     def __init__(self):
         self.model = whisper.load_model("base")
-        self.qdrant = QdrantDb(cloud_api_key="bGKFPZr51MMPXPnxlPQTGlTSqd0Dk8dZyo01b9dLgSo98gWi5anu5A", openai_api_key="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")
-        self.prompt = {"eng": "Answer this question by provided info. Question:{question}\n Info:{info}"}
+        self.qdrant = QdrantDb(cloud_api_key="MgU7bxwucSbZwFY8rQCZY9winLdTsdRekVyk3i3HdEUjmSAWejxniA", openai_api_key="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")
+        self.prompt = {"en": "Answer this question by provided info. Question:{question}\n Info:{info}"}
 
     def ask_video(self, data):
         try:
             video_id = data["video_id"]
-            sess_id = data["sess_id"]
-            sequence = data["seq"]
+            sess_id = int(data["sess_id"])
+            sequence = int(data["seq"])
             query = data["query"]
 
             MainFunc.create(SessionContent(sequence=sequence, content=query, id=sess_id))
-
+        
             docs = self.qdrant.search_top_k(query=query, video_id=video_id)
             merged_docs = self._merge_docs(docs)
 
             result = []
 
             for doc in merged_docs:
-                answer = self._rag(doc["page_content"], doc["metadata"]["lang"], query) #TODO get content right
-                video = Video(video_id, doc["metadata"]["start"], doc["metadata"]["end"]).create()
-                MainFunc.create(SessionContent(sequence=sequence+1, content=answer, id=sess_id, video=video))
+                answer = self._rag(doc["page_content"], doc["metadata"]["lang"], query)
+                tmp_cont = SessionContent(sequence=sequence+1, content=answer, id=sess_id).create()
+                MainFunc.create(Video(video_id, doc["metadata"]["start"], doc["metadata"]["end"], tmp_cont.id))
                 result.append({"video_info": doc["metadata"], "answer": answer})
 
 
@@ -72,16 +72,17 @@ class Converter:
             audio = self._download_video(url)
             result = self.model.transcribe(audio)
             os.remove("./tmp_audio")
-            
+
             # Create session for user when video selected
             MainFunc.create(Sessions(user_id=user_id, session_name=sess_name))
             # When user asks something, we can use language info to select promt for gpt in the future.
 
             docs = []
             for seg in result["segments"]:
-                docs.append(Document(page_content=seg["text"], metadata={"video_id": video_id, "start": seg["start"], 
-                                                                         "end": seg["end"], "lang": result["language"]}))
-
+                doc = Document(page_content=seg["text"], metadata={"video_id": video_id, "start": seg["start"], 
+                                                                         "end": seg["end"], "lang": result["language"]})
+                docs.append(doc)
+           
             self.qdrant.instert_docs(docs=docs)
             return Response(200, "Video preprocessed successfully", {})
         except Exception as e:
@@ -92,14 +93,14 @@ class Converter:
 
     def _rag(self, text, language, question):
         prompt = self.prompt[language].format(question=question, info=text)
-        response = openai.ChatCompletion.create(
-            api_key="",
+        client = OpenAI(api_key="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")
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo-16k",
             messages=[
                 {"role": "user", "content": prompt},
             ]
         )
-        return response
+        return response.choices[0].message.content
 
     def search_yt(self, query, k=10):
         try:
