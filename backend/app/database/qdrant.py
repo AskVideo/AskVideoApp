@@ -25,7 +25,7 @@ class QdrantDb:
         # )
 
     def instert_docs(self, docs):    
-        self.qdrant = Qdrant.from_documents(
+        Qdrant.from_documents(
             docs,
             OpenAIEmbeddings(openai_api_key=self.openai_api_key, model=self.embedding_model),
             url="https://4f095cda-6635-49dd-9645-47ed9ee478a5.us-east4-0.gcp.cloud.qdrant.io:6333",
@@ -36,7 +36,7 @@ class QdrantDb:
         )
 
     def search_top_k(self, query, video_id, k=10):
-        openai = OpenAIEmbeddings(openai_api_key=self.openai_api_key,model="text-embedding-ada-002")
+        openai = OpenAIEmbeddings(openai_api_key=self.openai_api_key, model=self.embedding_model)
         emmbed_q = openai.embed_query(query)
         filter = [FieldCondition(key="metadata.video_id", match=MatchValue(value=video_id))]
         found_docs = self.client.search(collection_name="ask_video", query_vector=emmbed_q,
