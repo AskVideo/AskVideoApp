@@ -30,19 +30,51 @@ export default function Component() {
 
   const handleChatSubmit = async (message) => {
     if (message.trim() === "") return;
-    //const response = await axios.post('YOUR_BACKEND_ENDPOINT', { query: message });
-    //const newMiniClips = response.data.miniClips;
-    setMessages((currentMessages) => [
-      ...currentMessages,
-      { type: "search", text: message, miniClips: miniClips },
-    ]);
+
+    // Add the user's message to the chat messages
+    const userMessage = { sender: "user", type: "text", text: message };
+    setMessages((currentMessages) => [...currentMessages, userMessage]);
+
+    try {
+      // Send the message to the backend and wait for the response
+      const response = await axios.post("http://localhost:5000/video/ask", {
+        video_id: videoId,
+        sess_id: userId, 
+        seq: messages.length, 
+        query: message,
+      });
+
+      // Add the backend's response to the chat messages
+      const chatbotResponse = {
+        sender: "bot",
+        type: "text",
+        text: response.data.answer, 
+        miniClips: response.data.miniClips, 
+      };
+      setMessages((currentMessages) => [...currentMessages, chatbotResponse]);
+
+      if (response.data.miniClips) {
+        const miniClipsResponse = response.data.miniClips.map((clip) => ({
+          sender: "bot",
+          type: "miniClip",
+          content: clip,
+        }));
+        setMessages((currentMessages) => [
+          ...currentMessages,
+          ...miniClipsResponse,
+        ]);
+      }
+    } catch (error) {
+      console.error("Error during chat submission:", error);
+    }
+
+    // Clear the input field after submission
+    setSearchQuery("");
   };
 
   const showMiniClipsForMessage = (messageIndex) => {
     const message = messages[messageIndex];
     if (message && message.miniClips) {
-      // Set the clips to state, display dropdown, or directly render clips as needed
-      // For example, you could use a state to show the clips in a dropdown:
       setMiniClipsReceivedFromSearch(message.miniClips);
       setIsDropdownOpen(true); // If using a dropdown to show the clips
     }
@@ -154,87 +186,56 @@ export default function Component() {
               )}
             </div>
           )}
-
           {/* Chat Interface */}
           <div className="w-full max-w-2x1 bg-grey rounded-lg border p-4 flex flex-col space-y-2">
             <div className="overflow-y-auto h-96">
-              {/* Messages and Mini Clips */}
-                {messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`p-2 rounded ${
-                      msg.sender === "user"
-                        ? "bg-blue-200 ml-auto"
-                        : "bg-gray-200"
-                    }`}
-                  >
-                    {msg.type === "text" && <p>{msg.text}</p>}
-                    {msg.type === "search" && (
-                      <>
-                        <p className="font-bold">{msg.text}</p>
-                        <Button
-                          onClick={() => showMiniClipsForMessage(index)}
-                        >
-                          Show Mini Clips
-                        </Button>
-                      </>
-                    )}
-                    {msg.type === "miniClip" && (
-                      <div className="mt-2 flex flex-col items-center">
-                        <iframe
-                          className="rounded-lg object-cover w-full"
-                          src={`https://www.youtube.com/embed/${msg.content.id}`}
-                          title={msg.content.title}
-                          frameBorder="0"
-                          allowFullScreen
-                        ></iframe>
-                        <p className="text-xs mt-1">{msg.content.title}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {/* Dropdown for mini clips, if you're using a dropdown approach */}
-                {isDropdownOpen && (
-                  <ul className="absolute w-56 bg-white border rounded shadow-lg mt-1 z-10">
-                    {miniClipsReceivedFromSearch.map((clip, index) => (
-                      <li
-                        key={index}
-                        className="cursor-pointer px-4 py-2 hover:bg-gray-100"
-                        onClick={() => setVideoId(clip.id)}
-                      >
-                        {clip.title}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Input form for new messages */}
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleChatSubmit(searchQuery);
-                  setSearchQuery("");
-                }}
-                className="flex"
-              >
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 p-2 border rounded-l outline-none"
-                  placeholder="Type a message..."
-                />
-                <Button
-                  type="submit"
+              {/* Iterate over messages and display text or mini clips */}
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`p-2 rounded ${
+                    msg.sender === "user"
+                      ? "bg-blue-200 ml-auto"
+                      : "bg-gray-200"
+                  }`}
                 >
-                  Send
-                </Button>
-              </form>
+                  {msg.text}
+                  {/* If the message is a mini clip, display a video player */}
+                  {msg.type === "miniClip" && (
+                    <iframe
+                      className="aspect-video rounded-lg object-cover w-full"
+                      src={`https://www.youtube.com/embed/${msg.content.id}`}
+                      title={msg.content.title}
+                      frameBorder="0"
+                      allowFullScreen
+                    ></iframe>
+                  )}
+                </div>
+              ))}
             </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleChatSubmit(searchQuery);
+              }}
+              className="flex"
+            >
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 p-2 border rounded-l outline-none"
+                placeholder="Ask something..."
+              />
+              <Button
+                type="submit"
+              >
+                Send
+              </Button>
+            </form>
           </div>
         </div>
       </div>
+    </div>
   );
 }
