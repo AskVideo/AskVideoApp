@@ -12,7 +12,7 @@ class Converter:
     def __init__(self):
         self.model = whisper.load_model("base")
         self.qdrant = QdrantDb(cloud_api_key="MgU7bxwucSbZwFY8rQCZY9winLdTsdRekVyk3i3HdEUjmSAWejxniA", openai_api_key="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")
-        self.prompt = {"en": "Answer this question by provided info. Question:{question}\n Info:{info}"}
+        self.prompt = {"en": "You are given a several of contents. Answer this question by given contents. Question:{question}\n Contents:{contents}"}
 
     def ask_video(self, data):
         try:
@@ -27,10 +27,10 @@ class Converter:
             merged_docs = self._merge_docs(docs)
 
             result = []
-
+            answer = self._rag(merged_docs, doc["metadata"]["lang"], query)
+            tmp_cont = SessionContent(sequence=sequence+1, content=answer, id=sess_id).create()
+ 
             for doc in merged_docs:
-                answer = self._rag(doc["page_content"], doc["metadata"]["lang"], query)
-                tmp_cont = SessionContent(sequence=sequence+1, content=answer, id=sess_id).create()
                 MainFunc.create(Video(video_id, doc["metadata"]["start"], doc["metadata"]["end"], tmp_cont.id))
                 result.append({"video_info": doc["metadata"], "answer": answer})
 
@@ -91,8 +91,13 @@ class Converter:
             return Response(500, "Something went wrong while preprocessing", {})
         
 
-    def _rag(self, text, language, question):
-        prompt = self.prompt[language].format(question=question, info=text)
+    def _rag(self, docs, language, question):
+        text = []
+        for doc in docs:
+            text.append(doc['page_content'])
+        text = "\n".join(text)
+
+        prompt = self.prompt[language].format(question=question, contents=text)
         client = OpenAI(api_key="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")
         response = client.chat.completions.create(
             model="gpt-3.5-turbo-16k",
