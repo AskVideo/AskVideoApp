@@ -16,14 +16,13 @@ export default function Home() {
   }
   
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-green-900 text-white">
       <header className="flex justify-between items-center p-4">
         <div className="flex items-center space-x-4">
           <img
-            alt="Products"
-            className="h-10 w-10"
+            className="h-20 w-20"
             height="40"
-            src="/placeholder.svg"
+            src="/logo.png"
             style={{
               aspectRatio: "40/40",
               objectFit: "cover",
@@ -33,10 +32,10 @@ export default function Home() {
           <h1 className="text-xl font-bold">AskVideo</h1>
         </div>
         <nav className="space-x-4">
-          <Link className="text-blue-500 hover:text-blue-700" href="#">
+          <Link className="text-white hover:text-blue-700" href="/about">
             About
           </Link>
-          <Link className="text-blue-500 hover:text-blue-700" href="#">
+          <Link className="text-white hover:text-blue-700" href="/features">
             Features
           </Link>
         </nav>
@@ -44,9 +43,9 @@ export default function Home() {
       <main className="flex justify-between items-center px-4 py-20">
         <section className="max-w-md">
           <h2 className="text-4xl font-bold mb-6">
-            Welcome to AskVideo.
+            Welcome to AskVideo
           </h2>
-          <p className="mb-8">Express your gratitude with a personalized message.</p>
+          <p className="mb-8">We increase video engagement by allowing you to easily ask questions and get targeted information from specific video segments.</p>
           <div className="space-x-4">
             <Button className="bg-blue-500 hover:bg-blue-700 text-white" onClick={navigateToLogin}>Log in</Button>
             <Button className="bg-blue-500 hover:bg-blue-700 text-white" onClick={navigateToSignUp}>Sign up</Button>
