@@ -9,66 +9,67 @@ export default function Component() {
   const [videoId, setVideoId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState([]);
+  const [miniClips, setMiniClips] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
   const [userId] = useLocalStorage("user_id", null);
   const [messages, setMessages] = useState([]);
+  
 
-  const miniClips = [
-    {
-      id: "dQw4w9WgXcQ",
-      title: "Clip 1",
-      thumbnailUrl: "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg",
-    },
-    {
-      id: "kxopViU98Xo",
-      title: "Clip 2",
-      thumbnailUrl: "https://img.youtube.com/vi/kxopViU98Xo/0.jpg",
-    },
-  ];
+  const toggleMiniClip = (messageIndex) => {
+    // Close if the same button is clicked again to toggle off
+    if (isDropdownOpen === messageIndex) {
+      setIsDropdownOpen(null);
+    } else {
+      setIsDropdownOpen(messageIndex);
+    }
+  };
 
   const handleChatSubmit = async (message) => {
     if (message.trim() === "") return;
 
-    // Add the user's message to the chat messages
     const userMessage = { sender: "user", type: "text", text: message };
     setMessages((currentMessages) => [...currentMessages, userMessage]);
 
     try {
-      // Send the message to the backend and wait for the response
       const response = await axios.post("http://localhost:5000/video/ask", {
         video_id: videoId,
-        sess_id: userId, 
-        seq: messages.length, 
+        sess_id: searchQuery,
+        seq: messages.length,
         query: message,
       });
 
-      // Add the backend's response to the chat messages
+      const firstResponseData = response.data.data[0];
+
       const chatbotResponse = {
         sender: "bot",
         type: "text",
-        text: response.data.answer, 
-        miniClips: response.data.miniClips, 
+        text: firstResponseData.answer,
       };
       setMessages((currentMessages) => [...currentMessages, chatbotResponse]);
 
-      if (response.data.miniClips) {
-        const miniClipsResponse = response.data.miniClips.map((clip) => ({
-          sender: "bot",
-          type: "miniClip",
-          content: clip,
-        }));
-        setMessages((currentMessages) => [
-          ...currentMessages,
-          ...miniClipsResponse,
-        ]);
+      const miniClipsData = response.data.data
+        .filter((item) => item.video_info && item.video_info.video_id)
+        .map(({ video_info }) => {
+          const { video_id, start, end } = video_info;
+          return {
+            id: video_id,
+            url: `https://www.youtube.com/embed/${video_id}?start=${Math.floor(
+              start
+            )}&end=${Math.floor(end)}`,
+            title: `Clip starting at ${Math.floor(start)} seconds`,
+          };
+        });
+
+      if (miniClipsData.length > 0) {
+        //setIsDropdownOpen(true); // This now solely controls the visibility of the dropdown
+        setMiniClips(miniClipsData);
       }
     } catch (error) {
       console.error("Error during chat submission:", error);
     }
 
-    // Clear the input field after submission
     setSearchQuery("");
   };
 
@@ -189,30 +190,49 @@ export default function Component() {
           {/* Chat Interface */}
           <div className="w-full max-w-2x1 bg-grey rounded-lg border p-4 flex flex-col space-y-2">
             <div className="overflow-y-auto h-96">
-              {/* Iterate over messages and display text or mini clips */}
               {messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`p-2 rounded ${
-                    msg.sender === "user"
-                      ? "bg-blue-200 ml-auto"
-                      : "bg-gray-200"
-                  }`}
+                  className={`flex ${
+                    msg.sender === "user" ? "justify-end" : ""
+                  } items-center my-2`}
                 >
-                  {msg.text}
-                  {/* If the message is a mini clip, display a video player */}
-                  {msg.type === "miniClip" && (
-                    <iframe
-                      className="aspect-video rounded-lg object-cover w-full"
-                      src={`https://www.youtube.com/embed/${msg.content.id}`}
-                      title={msg.content.title}
-                      frameBorder="0"
-                      allowFullScreen
-                    ></iframe>
+                  <div
+                    className={`p-2 rounded ${
+                      msg.sender === "user" ? "bg-blue-200" : "bg-gray-200"
+                    } max-w-xs`}
+                  >
+                    {msg.text}
+                  </div>
+                  {msg.sender === "bot" && miniClips.length > index && (
+                    <Button
+                      className="ml-2"
+                      onClick={() => toggleMiniClip(index)} // Define the toggle function
+                    >
+                      Mini Clips
+                    </Button>
                   )}
                 </div>
               ))}
             </div>
+            {/* Always attempt to show Mini Clips button if there are clips, regardless of chat messages */}
+
+            {isDropdownOpen && (
+              <ul className="absolute w-56 bg-white border rounded shadow-lg mt-1 z-10">
+                {miniClips.map((clip, index) => (
+                  <li
+                    key={index}
+                    className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                    onClick={() => {
+                      setVideoId(clip.id);
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    {clip.title}
+                  </li>
+                ))}
+              </ul>
+            )}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -227,11 +247,7 @@ export default function Component() {
                 className="flex-1 p-2 border rounded-l outline-none"
                 placeholder="Ask something..."
               />
-              <Button
-                type="submit"
-              >
-                Send
-              </Button>
+              <Button type="submit">Send</Button>
             </form>
           </div>
         </div>
