@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { useLocalStorage } from "react-use";
 
+
 export default function Component() {
   const [videoId, setVideoId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -14,7 +15,10 @@ export default function Component() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
   const [userId] = useLocalStorage("user_id", null);
+  const [sessId, set_sessId] = useLocalStorage("sess_id", null);
+
   const [messages, setMessages] = useState([]);
+
   
 
   const toggleMiniClip = (messageIndex) => {
@@ -35,7 +39,7 @@ export default function Component() {
     try {
       const response = await axios.post("http://localhost:5000/video/ask", {
         video_id: videoId,
-        sess_id: searchQuery,
+        sess_id: sessId,
         seq: messages.length,
         query: message,
       });
@@ -107,7 +111,11 @@ export default function Component() {
       const response = await axios.post("http://localhost:5000/sessions", {
         user_id: userId,
       });
-      console.log(response);
+      const sessionsData = response.data.data;
+      const lastSessionId = sessionsData[sessionsData.length - 1].sess_id;
+      
+      set_sessId(JSON.stringify(lastSessionId));
+      console.log("Last Session ID:", lastSessionId);
       const sessionTitles = response.data.data.map((session) => session.title);
       setRecentSearches(sessionTitles);
     } catch (error) {
