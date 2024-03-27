@@ -8,6 +8,7 @@ import { useLocalStorage } from "react-use";
 
 export default function Component() {
   const [videoId, setVideoId] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState([]);
   const [miniClips, setMiniClips] = useState([]);
@@ -22,7 +23,6 @@ export default function Component() {
   
 
   const toggleMiniClip = (messageIndex) => {
-    // Close if the same button is clicked again to toggle off
     if (isDropdownOpen === messageIndex) {
       setIsDropdownOpen(null);
     } else {
@@ -62,14 +62,19 @@ export default function Component() {
             url: `https://www.youtube.com/embed/${video_id}?start=${Math.floor(
               start
             )}&end=${Math.floor(end)}`,
-            title: `Clip starting at ${Math.floor(start)} seconds`,
+            title: `Clip starting at ${Math.floor(start % 3600 / 60)}:${String(Math.floor(start % 60)).padStart(2, '0')}`,
           };
         });
+      console.log(miniClipsData)
 
       if (miniClipsData.length > 0) {
-        //setIsDropdownOpen(true); // This now solely controls the visibility of the dropdown
-        setMiniClips(miniClipsData);
+        setMiniClips(miniClipsData.filter((clip, index, self) =>
+        index === self.findIndex((t) => (
+          t.id === clip.id && t.url === clip.url && t.title === clip.title
+        ))
+      ));
       }
+
     } catch (error) {
       console.error("Error during chat submission:", error);
     }
@@ -77,24 +82,23 @@ export default function Component() {
     setSearchQuery("");
   };
 
-  const showMiniClipsForMessage = (messageIndex) => {
-    const message = messages[messageIndex];
-    if (message && message.miniClips) {
-      setMiniClipsReceivedFromSearch(message.miniClips);
-      setIsDropdownOpen(true); // If using a dropdown to show the clips
-    }
-  };
 
   useEffect(() => {
     fetchSessions();
     fetchMiniClips();
     const urlParams = new URLSearchParams(window.location.search);
     setVideoId(urlParams.get("video"));
+    console.log("videoId")
+    console.log(urlParams)
+    console.log(videoId)
+    setVideoUrl(`https://www.youtube.com/embed/${urlParams.get("video")}`)
+    console.log(videoUrl)
   }, []);
 
+ 
+
+
   const fetchMiniClips = async () => {
-    // Implementation depends on your backend setup
-    // Assume it sets miniClips state with an array of clip URLs or IDs
   };
 
   const handleLogout = async () => {
@@ -163,7 +167,7 @@ export default function Component() {
                 className="aspect-video rounded-lg object-cover"
                 width="100%"
                 height="180"
-                src={`https://www.youtube.com/embed/${videoId}`}
+                src={`${videoUrl}`}
                 title="YouTube video player"
                 frameBorder="0"
                 allowFullScreen
@@ -171,30 +175,7 @@ export default function Component() {
             </div>
           )}
 
-          {/* Mini Clips Dropdown */}
-          {chatMessages.length > 0 && (
-            <div className="relative mb-4">
-              <Button onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-                Mini Clips
-              </Button>
-              {isDropdownOpen && (
-                <ul className="absolute w-56 bg-white border rounded shadow-lg mt-1 z-10">
-                  {miniClips.map((clip, index) => (
-                    <li
-                      key={index}
-                      className="cursor-pointer px-4 py-2 hover:bg-gray-100"
-                      onClick={() => {
-                        setVideoId(clip.id);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      {clip.title}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
+     
           {/* Chat Interface */}
           <div className="w-full max-w-2x1 bg-grey rounded-lg border p-4 flex flex-col space-y-2">
             <div className="overflow-y-auto h-96">
@@ -232,7 +213,7 @@ export default function Component() {
                     key={index}
                     className="cursor-pointer px-4 py-2 hover:bg-gray-100"
                     onClick={() => {
-                      setVideoId(clip.id);
+                      setVideoUrl(clip.url);
                       setIsDropdownOpen(false);
                     }}
                   >

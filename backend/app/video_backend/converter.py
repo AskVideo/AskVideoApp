@@ -27,7 +27,7 @@ class Converter:
             merged_docs = self._merge_docs(docs)
 
             result = []
-            answer = self._rag(merged_docs, doc["metadata"]["lang"], query)
+            answer = self._rag(merged_docs, merged_docs[0]["metadata"]["lang"], query)
             tmp_cont = SessionContent(sequence=sequence+1, content=answer, id=sess_id).create()
  
             for doc in merged_docs:
@@ -72,7 +72,7 @@ class Converter:
             audio = self._download_video(url)
             result = self.model.transcribe(audio)
             os.remove("./tmp_audio")
-
+            print (result)
             # Create session for user when video selected
             MainFunc.create(Sessions(user_id=user_id, session_name=sess_name))
             # When user asks something, we can use language info to select promt for gpt in the future.
