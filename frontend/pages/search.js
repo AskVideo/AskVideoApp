@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useRouter } from 'next/router';
 import { useLocalStorage } from 'react-use';
 
@@ -10,6 +11,8 @@ export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
   const [videos, setVideos] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [showProgressBar, setShowProgressBar] = useState(false);
+  const [progress, setProgress] = useState(0);
   const router = useRouter(); 
 
   const [userId] = useLocalStorage("user_id", null);
@@ -60,6 +63,9 @@ export default function Component() {
   };
 
   const handleVideoSelect = async (videoUrl) => {
+    setShowProgressBar(true);
+    setProgress(20);
+
     console.log(`handleVideoSelect called with URL: ${videoUrl}`);
   if (!videoUrl) {
     console.error("handleVideoSelect was called with an undefined or null URL.");
@@ -73,15 +79,18 @@ export default function Component() {
         return; 
       }
       console.log(`Video ID: ${videoId}`); 
-
+      setProgress(40)
+      setProgress(50)
       const response = await axios.post('http://localhost:5000/video/preprocess', {
         user_id: userId, 
         video_id: videoId,
         session_name: searchQuery 
       });
-      
+      setProgress(70)
       if (response.data.code === 200) {
+        setProgress(80)
         window.location.href = `http://localhost:3001/searchinvideo?video=${encodeURIComponent(videoId)}`;
+        setProgress(90)
       }
     } catch (error) {
       console.error("Error in handleVideoSelect:", error);
@@ -96,8 +105,12 @@ export default function Component() {
         {/* Logout Button */}
         <Button onClick={handleLogout}>Logout</Button>
       </div>
+      
       <div className="max-w-3xl mx-auto grid gap-4">
         <div>
+        {showProgressBar && (
+            <Progress className="w-full" value={progress} max="100"></Progress>
+        )}
           <h1 className="text-3xl font-bold">AskVideo</h1>
           <div className="border border-gray-200 rounded-lg p-4 grid gap-4">
             <div className="text-sm flex items-center gap-2">

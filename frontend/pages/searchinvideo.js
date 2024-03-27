@@ -68,11 +68,7 @@ export default function Component() {
       console.log(miniClipsData)
 
       if (miniClipsData.length > 0) {
-        setMiniClips(miniClipsData.filter((clip, index, self) =>
-        index === self.findIndex((t) => (
-          t.id === clip.id && t.url === clip.url && t.title === clip.title
-        ))
-      ));
+        setMiniClips(miniClipsData)
       }
 
     } catch (error) {
