@@ -34,14 +34,16 @@ class Sessions(db.Model):
     __tablename__ = 'sessions'
     id = db.Column(db.Integer, primary_key=True)
     session_name = db.Column(db.String(80), default="Ask the video")
+    video_id = db.Column(db.String(None))
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     session_content = db.relationship('SessionContent', backref='session', lazy=True)
 
-    def __init__(self, user_id, session_name):
+    def __init__(self, user_id, session_name, video_id):
         self.user_id = user_id
         self.session_name = session_name
+        self.video_id = video_id
 
     def __repr__(self):
         return '<Sessions(user_id: %r)> ' % (self.user_id)

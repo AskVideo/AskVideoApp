@@ -26,6 +26,9 @@ class Converter:
             docs = self.qdrant.search_top_k(query=query, video_id=video_id)
             merged_docs = self._merge_docs(docs)
 
+            print("merge_docs")
+            print(merged_docs)
+
             result = []
             answer = self._rag(merged_docs, merged_docs[0]["metadata"]["lang"], query)
             tmp_cont = SessionContent(sequence=sequence+1, content=answer, id=sess_id).create()
@@ -33,7 +36,6 @@ class Converter:
             for doc in merged_docs:
                 MainFunc.create(Video(video_id, doc["metadata"]["start"], doc["metadata"]["end"], tmp_cont.id))
                 result.append({"video_info": doc["metadata"], "answer": answer})
-
 
 
             return Response(200, "Answers", result)
@@ -48,7 +50,7 @@ class Converter:
 
         for doc in merged_docs[1:]:
             tmp = result[-1]
-            if tmp["metadata"]["end"] == doc.payload["metadata"]['start']:
+            if doc.payload["metadata"]['start'] - tmp["metadata"]["end"] < 10:
                 result[-1] = {
                                 "page_content": tmp["page_content"] + " " + doc.payload["page_content"],
                                 "metadata":{"start": tmp["metadata"]["start"], "end": doc.payload["metadata"]['end'], 
@@ -57,7 +59,7 @@ class Converter:
             else:
                 result.append(doc.payload)
 
-        return  result
+        return result
         
 
 
@@ -67,15 +69,14 @@ class Converter:
             video_id = data["video_id"]
             url = "https://youtube.com/watch?v={video_id}".format(video_id=video_id)
 
-            sess_name = data["session_name"] 
+            sess_name = data["session_name"]
+
+            if MainFunc.get(Sessions, video_id=video_id):
+                return Response(200, "Video preprocessed before", {})
 
             audio = self._download_video(url)
             result = self.model.transcribe(audio)
             os.remove("./tmp_audio")
-            print (result)
-            # Create session for user when video selected
-            MainFunc.create(Sessions(user_id=user_id, session_name=sess_name))
-            # When user asks something, we can use language info to select promt for gpt in the future.
 
             docs = []
             for seg in result["segments"]:
@@ -84,6 +85,9 @@ class Converter:
                 docs.append(doc)
            
             self.qdrant.instert_docs(docs=docs)
+
+            # Create session for user when video selected
+            MainFunc.create(Sessions(user_id=user_id, session_name=sess_name, video_id=video_id))
             return Response(200, "Video preprocessed successfully", {})
         except Exception as e:
             logging.error("Video Preprocesse Error")
