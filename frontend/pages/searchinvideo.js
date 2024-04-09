@@ -54,17 +54,18 @@ export default function Component() {
       setMessages((currentMessages) => [...currentMessages, chatbotResponse]);
 
       const miniClipsData = response.data.data
-        .filter((item) => item.video_info && item.video_info.video_id)
+        .filter((item) => item.video_info)
         .map(({ video_info }) => {
-          const { video_id, start, end } = video_info;
+          const {start, end } = video_info;
           return {
-            id: video_id,
-            url: `https://www.youtube.com/embed/${video_id}?start=${Math.floor(
+            id: videoId,
+            url: `https://www.youtube.com/embed/${videoId}?start=${Math.floor(
               start
             )}&end=${Math.floor(end)}`,
             title: `Clip starting at ${Math.floor(start % 3600 / 60)}:${String(Math.floor(start % 60)).padStart(2, '0')}`,
           };
         });
+      console.log("miniclipdata")
       console.log(miniClipsData)
 
       if (miniClipsData.length > 0) {
@@ -86,9 +87,7 @@ export default function Component() {
     setVideoId(urlParams.get("video"));
     console.log("videoId")
     console.log(urlParams)
-    console.log(videoId)
     setVideoUrl(`https://www.youtube.com/embed/${urlParams.get("video")}`)
-    console.log(videoUrl)
   }, []);
 
  
