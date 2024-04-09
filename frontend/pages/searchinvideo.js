@@ -218,7 +218,7 @@ export default function Component() {
                   >
                     {msg.text}
                   </div>
-                  {msg.sender === "bot" && miniClips.length > index && (
+                  {msg.sender === "bot" && (
                     <Button
                       className="ml-2"
                       onClick={() => toggleMiniClip(index)} // Define the toggle function
