@@ -26,9 +26,6 @@ class Converter:
             docs = self.qdrant.search_top_k(query=query, video_id=video_id)
             merged_docs = self._merge_docs(docs)
 
-            print("merge_docs")
-            print(merged_docs)
-
             result = []
             answer = self._rag(merged_docs, merged_docs[0]["metadata"]["lang"], query)
             tmp_cont = SessionContent(sequence=sequence+1, content=answer, id=sess_id).create()

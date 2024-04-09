@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { useLocalStorage } from "react-use";
@@ -84,11 +83,14 @@ export default function Component() {
     fetchSessions();
     fetchMiniClips();
     const urlParams = new URLSearchParams(window.location.search);
-    setVideoId(urlParams.get("video"));
-    console.log("videoId")
-    console.log(urlParams)
-    setVideoUrl(`https://www.youtube.com/embed/${urlParams.get("video")}`)
-  }, []);
+    if (videoId) {
+      setVideoUrl(`https://www.youtube.com/embed/${videoId}`) 
+    }
+    if(videoUrl){
+      setVideoUrl(videoUrl);
+    }
+    console.log(videoUrl)
+  }, [miniClips, videoUrl, sessId, videoId]);
 
  
 
@@ -110,21 +112,49 @@ export default function Component() {
       const response = await axios.post("http://localhost:5000/sessions", {
         user_id: userId,
       });
-      const sessionsData = response.data.data;
-      const lastSessionId = sessionsData[sessionsData.length - 1].sess_id;
-      
-      set_sessId(JSON.stringify(lastSessionId));
-      console.log("Last Session ID:", lastSessionId);
-      const sessionTitles = response.data.data.map((session) => session.title);
-      setRecentSearches(sessionTitles);
+      setRecentSearches(response.data.data);
     } catch (error) {
       console.error("Failed to fetch sessions", error);
     }
   };
 
-  const handleRecentSearchClick = async (query) => {
-    setSearchQuery(query);
-    setIsSearchPerformed(true);
+  const handleRecentSearchClick = async (sess_id, video_id) => {
+    const response = await axios.post("http://localhost:5000/session/content", {
+        sess_id: sess_id,
+      });
+    let sessions = response.data.data;
+    set_sessId(JSON.stringify(sess_id));
+    setVideoId(video_id);
+    setVideoUrl(`https://www.youtube.com/embed/${video_id}`)
+    let userMessage = "";
+    let currentMessages = [];
+    for (const sess in sessions) {
+      if (sessions[sess].sequence % 2 == 0) {
+          console.log("sesss");
+          userMessage = { sender: "user", type: "text", text: sessions[sess].text };
+          currentMessages.push(userMessage);
+      }
+      else{
+          let miniClipsData = [];
+          userMessage = { sender: "bot", type: "text", text: sessions[sess].text };
+          currentMessages.push(userMessage);
+          for (const video in sessions[sess].video_info) {
+            console.log(video);
+            miniClipsData.push({
+              id: video_id,
+              url: `https://www.youtube.com/embed/${video_id}?start=${Math.floor(
+                sessions[sess].video_info[video].start
+              )}&end=${Math.floor(sessions[sess].video_info[video].end)}`,
+              title: `Clip starting at ${Math.floor(sessions[sess].video_info[video].start % 3600 / 60)}:${String(Math.floor(sessions[sess].video_info[video].start % 60)).padStart(2, '0')}`,
+            })
+          }
+          if (miniClipsData.length > 0) {
+            console.log(miniClipsData)
+            setMiniClips(miniClipsData)
+          }
+      }
+    }
+    setMessages(currentMessages);
   };
 
   return (
@@ -141,13 +171,13 @@ export default function Component() {
         <div className="w-1/6 bg-gray-200 p-4">
           <h2 className="font-bold mb-4 ">Recent Searches</h2>
           <ul>
-            {recentSearches.map((search, index) => (
+            {recentSearches.map((sess, index) => (
               <li
-                key={index}
+                key={sess.sess_id}
                 className="cursor-pointer"
-                onClick={() => handleRecentSearchClick(search)}
+                onClick={() => handleRecentSearchClick(sess.sess_id, sess.video_id)}
               >
-                {search}
+                {sess.title}
               </li>
             ))}
           </ul>

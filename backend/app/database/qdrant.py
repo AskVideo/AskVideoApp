@@ -37,7 +37,6 @@ class QdrantDb:
         )
 
     def search_top_k(self, query, video_id, k=10):
-        print("searchhhhhh")
         openai = OpenAIEmbeddings(openai_api_key=self.openai_api_key, model=self.embedding_model)
         emmbed_q = openai.embed_query(query)
         filter = [FieldCondition(key="metadata.video_id", match=MatchValue(value=video_id))]

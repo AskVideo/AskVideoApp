@@ -32,7 +32,7 @@ def get_sessions():
     response = user_actions.get_sessions(args)
     return response
 
-@bp.route("/session/content", methods=['GET'])
+@bp.route("/session/content", methods=['POST'])
 def get_sess_content():
     data = request.get_data()
     args = json.loads(data)

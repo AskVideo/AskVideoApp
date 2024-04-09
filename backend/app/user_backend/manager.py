@@ -81,7 +81,7 @@ class UserActions:
             user_sessions = MainFunc.get_all(Sessions, user_id=user_id)
             result = []
             for sess in user_sessions:
-                result.append({"sess_id": sess.id, "title": sess.session_name})
+                result.append({"sess_id": sess.id, "title": sess.session_name, "video_id": sess.video_id})
 
             return Response(200, "Sessions", result)
         except Exception as e:
@@ -93,19 +93,22 @@ class UserActions:
         try:
             sess_id = data["sess_id"]
             contents = MainFunc.get_all(SessionContent, session_id = sess_id)
+            print("cont", contents)
             result = []
             for content in contents:
                 video_info = {}
                 if content.video:
-                    video = content.video
-                    video_info = {"id": video.id, "video_id": video.video_id, "start": video.start, "end": video.end}
-                result.insert(content.seqsequence, {"id": content.id, "sequence": content.sequence, "text": content.content, "video_info": video_info})
+                    videos = content.video
+                    video_info = []
+                    for video in videos:
+                        video_info.append({"id": video.id, "video_id": video.video_id, "start": video.start, "end": video.end})
+                result.insert(content.sequence, {"id": content.id, "sequence": content.sequence, "text": content.content, "video_info": video_info})
 
             return Response(200, "Session Content", result)
         except Exception as e:
             logging.error("Get Session Content Error")
             logging.error(e)
-            return Response(500, "Something went wrong while getting session content")
+            return Response(500, "Something went wrong while getting session content", {})
 
         
 
